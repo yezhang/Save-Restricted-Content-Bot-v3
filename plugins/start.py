@@ -13,15 +13,15 @@ async def subscribe(app, message):
         try:
           user = await app.get_chat_member(FORCE_SUB, message.from_user.id)
           if str(user.status) == "ChatMemberStatus.BANNED":
-              await message.reply_text("You are Banned. Contact -- Team SPY")
+              await message.reply_text("You are Banned. Contact -- https://t.me/Yezegg")
               return 1
         except UserNotParticipant:
             link = await app.export_chat_invite_link(FORCE_SUB)
             caption = f"Join our channel to use the bot"
-            await message.reply_photo(photo="https://graph.org/file/d44f024a08ded19452152.jpg",caption=caption, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Join Now...", url=f"{link}")]]))
+            await message.reply_photo(photo="https://graph.org/file/d44f024a08ded19452152.jpg",caption=caption, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("加入...", url=f"{link}")]]))
             return 1
         except Exception as ggn:
-            await message.reply_text(f"Something Went Wrong. Contact admins... with following message {ggn}")
+            await message.reply_text(f"出错了。请联系管理员并告知该信息 {ggn}")
             return 1 
      
 @app.on_message(filters.command("set"))
@@ -31,24 +31,24 @@ async def set(_, message):
         return
      
     await app.set_bot_commands([
-        BotCommand("start", "🚀 Start the bot"),
-        BotCommand("batch", "🫠 Extract in bulk"),
-        BotCommand("login", "🔑 Get into the bot"),
-        BotCommand("setbot", "🧸 Add your bot for handling files"),
-        BotCommand("logout", "🚪 Get out of the bot"),
-        BotCommand("adl", "👻 Download audio from 30+ sites"),
-        BotCommand("dl", "💀 Download videos from 30+ sites"),
-        BotCommand("status", "⟳ Refresh Payment status"),
-        BotCommand("transfer", "💘 Gift premium to others"),
-        BotCommand("add", "➕ Add user to premium"),
-        BotCommand("rem", "➖ Remove from premium"),
-        BotCommand("rembot", "🤨 Remove your custom bot"),
-        BotCommand("settings", "⚙️ Personalize things"),
-        BotCommand("plan", "🗓️ Check our premium plans"),
-        BotCommand("terms", "🥺 Terms and conditions"),
-        BotCommand("help", "❓ If you're a noob, still!"),
-        BotCommand("cancel", "🚫 Cancel login/batch/settings process"),
-        BotCommand("stop", "🚫 Cancel batch process")
+        BotCommand("start", "🚀 启动机器人"),
+        # BotCommand("batch", "🫠 Extract in bulk"),
+        BotCommand("login", "🔑 登录你的个人机器人"),
+        BotCommand("setbot", "🧸 添加你的个人机器人用来处理文件"),
+        BotCommand("logout", "🚪 退出机器人"),
+        # BotCommand("adl", "👻 Download audio from 30+ sites"),
+        # BotCommand("dl", "💀 Download videos from 30+ sites"),
+        BotCommand("status", "⟳ 刷新支付状态"),
+        BotCommand("transfer", "💘 将会员送给他人"),
+        # BotCommand("add", "➕ Add user to premium"),
+        # BotCommand("rem", "➖ Remove from premium"),
+        BotCommand("rembot", "🤨 移除你的自定义机器人"),
+        # BotCommand("settings", "⚙️ Personalize things"),
+        BotCommand("plan", "🗓️ 查看会员计划"),
+        BotCommand("terms", "🥺 服务条款"),
+        BotCommand("help", "❓ 如果你是新手，仍然可以使用！"),
+        BotCommand("cancel", "🚫 取消登录/批处理/设置过程"),
+        BotCommand("stop", "🚫 停止批处理过程")
     ])
  
     await message.reply("✅ Commands configured successfully!")
@@ -103,7 +103,7 @@ help_pages = [
         "> 4. REPLACEWORDS : Can be used for words in deleted set via REMOVE WORDS\n"
         "> 5. RESET : To set the things back to default\n\n"
         "> You can set CUSTOM THUMBNAIL, PDF WATERMARK, VIDEO WATERMARK, SESSION-based login, etc. from settings\n\n"
-        "**__Powered by Team SPY__**"
+        # "**__Powered by Team SPY__**"
     )
 ]
  
@@ -171,7 +171,7 @@ async def terms(client, message):
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📋 See Plans", callback_data="see_plan")],
-            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/kingofpatal")],
+            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/Yezegg")],
         ]
     )
     await message.reply_text(terms_text, reply_markup=buttons)
@@ -190,7 +190,7 @@ async def plan(client, message):
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📜 See Terms", callback_data="see_terms")],
-            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/kingofpatal")],
+            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/Yezegg")],
         ]
     )
     await message.reply_text(plan_text, reply_markup=buttons)
@@ -209,7 +209,7 @@ async def see_plan(client, callback_query):
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📜 See Terms", callback_data="see_terms")],
-            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/kingofpatal")],
+            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/Yezegg")],
         ]
     )
     await callback_query.message.edit_text(plan_text, reply_markup=buttons)
@@ -227,7 +227,7 @@ async def see_terms(client, callback_query):
     buttons = InlineKeyboardMarkup(
         [
             [InlineKeyboardButton("📋 See Plans", callback_data="see_plan")],
-            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/kingofpatal")],
+            [InlineKeyboardButton("💬 Contact Now", url="https://t.me/Yezegg")],
         ]
     )
     await callback_query.message.edit_text(terms_text, reply_markup=buttons)

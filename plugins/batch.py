@@ -171,7 +171,7 @@ async def prog(c, t, C, h, m, st):
         bar = '🟢' * int(p / 10) + '🔴' * (10 - int(p / 10))
         speed = c / (time.time() - st) / (1024 * 1024) if time.time() > st else 0
         eta = time.strftime('%M:%S', time.gmtime((t - c) / (speed * 1024 * 1024))) if speed > 0 else '00:00'
-        await C.edit_message_text(h, m, f"__**Pyro Handler...**__\n\n{bar}\n\n⚡**__Completed__**: {c_mb:.2f} MB / {t_mb:.2f} MB\n📊 **__Done__**: {p:.2f}%\n🚀 **__Speed__**: {speed:.2f} MB/s\n⏳ **__ETA__**: {eta}\n\n**__Powered by Team SPY__**")
+        await C.edit_message_text(h, m, f"__**处理中...**__\n\n{bar}\n\n⚡**__进度__**: {c_mb:.2f} MB / {t_mb:.2f} MB\n📊 **__百分比__**: {p:.2f}%\n🚀 **__速度__**: {speed:.2f} MB/s\n⏳ **__剩余时间__**: {eta}\n\n**__Powered by @Yezegg__**")
         if p >= 100: P.pop(m, None)
 
 async def send_direct(c, m, tcid, ft=None, rtmid=None):
@@ -219,10 +219,11 @@ async def process_msg(c, u, m, d, lt, uid, i):
             
             if lt == 'public' and not emp.get(i, False):
                 await send_direct(c, m, tcid, ft, rtmid)
-                return 'Sent directly.'
+                return '已直接发送'
+                # return 'Sent directly.'
             
             st = time.time()
-            p = await c.send_message(d, 'Downloading...')
+            p = await c.send_message(d, '下载中...')
 
             c_name = f"{time.time()}"
             if m.video:
@@ -328,16 +329,16 @@ async def process_msg(c, u, m, d, lt, uid, i):
             except Exception as e:
                 await c.edit_message_text(d, p.id, f'Upload failed: {str(e)[:30]}')
                 if os.path.exists(f): os.remove(f)
-                return 'Failed.'
+                return '失败.'
             
             os.remove(f)
             await c.delete_messages(d, p.id)
             
-            return 'Done.'
+            return '已完成.'
             
         elif m.text:
             await c.send_message(tcid, text=m.text.markdown, reply_to_message_id=rtmid)
-            return 'Sent.'
+            return '已发送。'
     except Exception as e:
         return f'Error: {str(e)[:50]}'
 
@@ -363,7 +364,7 @@ async def process_cmd(c, m):
         return
     
     Z[uid] = {'step': 'start' if cmd == 'batch' else 'start_single'}
-    await pro.edit(f'Send {"start link..." if cmd == "batch" else "link you to process"}.')
+    await pro.edit(f'发送 {"第一个链接..." if cmd == "batch" else "链接（link）……"}.')
 
 @X.on_message(filters.command(['cancel', 'stop']))
 async def cancel_cmd(c, m):
