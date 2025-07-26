@@ -216,6 +216,10 @@ async def screenshot(video: str, duration: int, sender: str) -> str | None:
     time_stamp = hhmmss(duration // 2)
     output_file = datetime.now().isoformat("_", "seconds") + ".jpg"
 
+    # 添加一个父目录 downloads/
+    output_file = os.path.join("downloads", output_file)
+
+    # 从视频中提取一帧图像
     cmd = [
         "ffmpeg",
         "-ss", time_stamp,

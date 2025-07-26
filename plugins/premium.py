@@ -9,9 +9,7 @@ from config import OWNER_ID
 from utils.func import add_premium_user, is_private_chat
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton as IK, InlineKeyboardMarkup as IKM
-from config import OWNER_ID, JOIN_LINK as JL , ADMIN_CONTACT as AC
-import base64 as spy
-from utils.func import a1, a2, a3, a4, a5, a7, a8, a9, a10, a11
+from config import OWNER_ID, JOIN_LINK , ADMIN_CONTACT
 from plugins.start import subscribe
 
 
@@ -69,37 +67,26 @@ Subscription valid until: {formatted_expiry} (IST)"""
         await event.respond(f'Error: {str(e)}')
         
         
-attr1 = spy.b64encode("photo".encode()).decode()
-attr2 = spy.b64encode("file_id".encode()).decode()
 
-@app.on_message(filters.command(spy.b64decode(a5.encode()).decode()))
+# 机器人是可以在群或频道中接收消息的，所以使用 filter.private 来确保只在私聊中处理 /start 命令
+@app.on_message(filters.command('start') & filters.private)
 async def start_handler(client, message):
     subscription_status = await subscribe(client, message)
     if subscription_status == 1:
         return
 
-    b1 = spy.b64decode(a1).decode()
-    b2 = int(spy.b64decode(a2).decode())
-    b3 = spy.b64decode(a3).decode()
-    b4 = spy.b64decode(a4).decode()
-    b6 = spy.b64decode(a7).decode()
-    b7 = spy.b64decode(a8).decode()
-    b8 = spy.b64decode(a9).decode()
-    b9 = spy.b64decode(a10).decode()
-    b10 = spy.b64decode(a11).decode()
-
-    tm = await getattr(app, b3)(b1, b2)
-
-    pb = getattr(tm, spy.b64decode(attr1.encode()).decode())
-    fd = getattr(pb, spy.b64decode(attr2.encode()).decode())
-
     kb = IKM([
-        [IK(b7, url=JL)],
-        [IK(b8, url=AC)]
+        [IK('加入频道（必选）', url=JOIN_LINK)],
+        [IK('升级高级版', url=ADMIN_CONTACT)]
     ])
 
-    await getattr(message, b4)(
-        fd,
-        caption=b6,
-        reply_markup=kb
-    )
+    hello_message = f"""
+<b>嗨，{message.from_user.mention}！</b>
+<b>欢迎使用 本机器人！</b>
+<b>请注意：</b>
+<b>1. 在禁止转发的情况下，我仍然可以转发频道或群组的视频、文件</b>
+<b>2. 如果需要获取公有频道/群的视频，直接发送公有频道的链接</b>
+<b>3. 如果需要获取私有频道/群的视频，请先执行 /login.</b>
+"""
+
+    await message.reply_text(hello_message, reply_markup=kb, quote=False)
