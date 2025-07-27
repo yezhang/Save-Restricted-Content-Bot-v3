@@ -234,6 +234,7 @@ async def process_msg(c, u, m, d, lt, uid, i):
                 if m.video.file_size:
                     if m.video.file_size > 2 * 1024 * 1024 * 1024: # 大于2GB
                         return '文件大于2GB，无法处理。请联系管理员 @Yezegg。'
+
             orig_text = m.caption.markdown if m.caption else ''
             proc_text = await process_text_with_rules(d, orig_text)
             user_cap = await get_user_data_key(d, 'caption', '')
@@ -249,28 +250,39 @@ async def process_msg(c, u, m, d, lt, uid, i):
             logger.info('给用户发送消息，提示下载：下载中...')
             p = await c.send_message(d, '下载中...')
 
-            c_name = f"{time.time()}"
+            msg_name = f"{lt}{i}_{d}"
+            # c_name = f"{time.time()}"
+            c_name = msg_name
+
             if m.video:
                 file_name = m.video.file_name
                 if not file_name:
-                    file_name = f"{time.time()}.mp4"
-                    c_name = sanitize(file_name)
+                    file_name = f"{msg_name}.mp4"
+                c_name = sanitize(file_name)
             elif m.audio:
                 file_name = m.audio.file_name
                 if not file_name:
-                    file_name = f"{time.time()}.mp3"
-                    c_name = sanitize(file_name)
+                    file_name = f"{msg_name}.mp3"
+                c_name = sanitize(file_name)
             elif m.document:
                 file_name = m.document.file_name
                 if not file_name:
-                    file_name = f"{time.time()}"
-                    c_name = sanitize(file_name)
+                    file_name = f"{msg_name}"
+                c_name = sanitize(file_name)
             elif m.photo:
-                file_name = f"{time.time()}.jpg"
+                file_name = m.photo.file_name
+                if not file_name:
+                    file_name = f"{msg_name}.jpg"
                 c_name = sanitize(file_name)
     
-            logger.info('下载媒体(download_media())')
-            f = await u.download_media(m, file_name=c_name, progress=prog, progress_args=(c, d, p.id, st))
+            logger.info(f'下载媒体(download_media()), {c_name}')
+
+            # 如果文件已存在，直接使用已存在的文件缓存
+            if os.path.exists(c_name):
+                logger.info(f'文件 {c_name} 已存在，直接使用')
+                f = c_name
+            else:
+                f = await u.download_media(m, file_name=c_name, progress=prog, progress_args=(c, d, p.id, st))
             
             if not f:
                 await c.edit_message_text(d, p.id, 'Failed.')
@@ -289,7 +301,7 @@ async def process_msg(c, u, m, d, lt, uid, i):
             
             if fsize > 2 and Y:
                 st = time.time()
-                await c.edit_message_text(d, p.id, 'File is larger than 2GB. Using alternative method...')
+                await c.edit_message_text(d, p.id, '文件大于2GB，使用替代方法...')
                 await upd_dlg(Y)
                 mtd = await get_video_metadata(f)
                 dur, w, h = mtd['duration'], mtd['width'], mtd['height']
@@ -300,7 +312,8 @@ async def process_msg(c, u, m, d, lt, uid, i):
                             'photo': Y.send_photo, 'document': Y.send_document}
                 
                 for mtype, func in send_funcs.items():
-                    if f.endswith('.mp4'): mtype = 'video'
+                    if f.endswith('.mp4'): 
+                        mtype = 'video'
                     if getattr(m, mtype, None):
                         sent = await func(LOG_GROUP, f, thumb=th if mtype == 'video' else None, 
                                         duration=dur if mtype == 'video' else None,
@@ -310,6 +323,7 @@ async def process_msg(c, u, m, d, lt, uid, i):
                                         reply_to_message_id=rtmid, progress=prog, progress_args=(c, d, p.id, st))
                         break
                 else:
+                    logger.info('使用 send_document 发送大文件')
                     sent = await Y.send_document(LOG_GROUP, f, thumb=th, caption=ft if m.caption else None,
                                                 reply_to_message_id=rtmid, progress=prog, progress_args=(c, d, p.id, st))
                 
