@@ -16,6 +16,11 @@ from utils.custom_filters import login_in_progress
 from utils.encrypt import dcs
 from typing import Dict, Any, Optional
 
+import logging
+logging.basicConfig(format=
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger('bot-batch')
+
 
 Y = None if not STRING else __import__('shared_client').userbot
 Z, P, UB, UC, emp = {}, {}, {}, {}, {}
@@ -212,6 +217,8 @@ async def process_msg(c, u, m, d, lt, uid, i):
                 tcid = int(cfg_chat)
         
         if m.media:
+            logger.info('找到消息中的媒体资源')
+
             orig_text = m.caption.markdown if m.caption else ''
             proc_text = await process_text_with_rules(d, orig_text)
             user_cap = await get_user_data_key(d, 'caption', '')
@@ -223,6 +230,8 @@ async def process_msg(c, u, m, d, lt, uid, i):
                 # return 'Sent directly.'
             
             st = time.time()
+
+            logger.info('给用户发送消息，提示下载：下载中...')
             p = await c.send_message(d, '下载中...')
 
             c_name = f"{time.time()}"
@@ -245,6 +254,7 @@ async def process_msg(c, u, m, d, lt, uid, i):
                 file_name = f"{time.time()}.jpg"
                 c_name = sanitize(file_name)
     
+            logger.info('下载媒体(download_media())')
             f = await u.download_media(m, file_name=c_name, progress=prog, progress_args=(c, d, p.id, st))
             
             if not f:
@@ -340,7 +350,8 @@ async def process_msg(c, u, m, d, lt, uid, i):
             await c.send_message(tcid, text=m.text.markdown, reply_to_message_id=rtmid)
             return '已发送。'
     except Exception as e:
-        return f'Error: {str(e)[:50]}'
+        logger.error(f'Error processing message: {e}')
+        return f'Error: {str(e)[:37]}. 请联系管理员 @Yezegg。'
 
 @X.on_message(filters.command(['batch', 'single']))
 async def process_cmd(c, m):
@@ -426,6 +437,8 @@ async def text_handler(c, m):
 
         try:
             msg = await get_msg(ubot, uc, i, s, lt)
+            # print(msg)
+            logger.info(f'Processing message: msg.id={msg.id}, msg.media={msg.media}, msg.chat.id={msg.chat.id}')
             if msg:
                 res = await process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i)
                 await pt.edit(f'1/1: {res}')
