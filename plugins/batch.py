@@ -230,6 +230,10 @@ async def process_msg(c, u, m, d, lt, uid, i):
         if m.media:
             logger.info('找到消息中的媒体资源')
 
+            if m.video:
+                if m.video.file_size:
+                    if m.video.file_size > 2 * 1024 * 1024 * 1024: # 大于2GB
+                        return '文件大于2GB，无法处理。请联系管理员 @Yezegg。'
             orig_text = m.caption.markdown if m.caption else ''
             proc_text = await process_text_with_rules(d, orig_text)
             user_cap = await get_user_data_key(d, 'caption', '')
