@@ -57,6 +57,15 @@ def hhmmss(seconds):
 
 
 def E(L):   
+    """
+    Extract chat ID and message ID from a Telegram link.
+    Args:
+    - L: The Telegram link (e.g., https://t.me/c/123456/7890 or https://t.me/some_channel/12345).
+    Returns:
+    - chat_id: The chat ID (e.g., -1001234567890 for private chats, or some_channel for public channels).
+    - message_id: The message ID (e.g., 7890).
+    - chat_type: 'private' for private chats, 'public' for public channels.
+    """
     private_match = re.match(r'https://t\.me/c/(\d+)/(?:\d+/)?(\d+)', L)
     public_match = re.match(r'https://t\.me/([^/]+)/(?:\d+/)?(\d+)', L)
     

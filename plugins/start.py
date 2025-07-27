@@ -15,11 +15,11 @@ async def subscribe(app, message):
         try:
           user = await app.get_chat_member(FORCE_SUB, message.from_user.id)
           if str(user.status) == "ChatMemberStatus.BANNED":
-              await message.reply_text("You are Banned. Contact -- https://t.me/Yezegg")
+              await message.reply_text("您已被禁止。请联系 -- https://t.me/Yezegg")
               return 1
         except UserNotParticipant:
             link = await app.export_chat_invite_link(FORCE_SUB)
-            caption = f"Join our channel to use the bot"
+            caption = f"加入我们的频道以使用机器人"
             await message.reply_photo(photo="https://graph.org/file/d44f024a08ded19452152.jpg",caption=caption, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("加入...", url=f"{link}")]]))
             return 1
         except Exception as ggn:
@@ -41,16 +41,16 @@ async def set(_, message):
         BotCommand("logout", "🚪 退出机器人"),
         # BotCommand("adl", "👻 Download audio from 30+ sites"),
         # BotCommand("dl", "💀 Download videos from 30+ sites"),
-        BotCommand("status", "⟳ 刷新支付状态"),
-        BotCommand("transfer", "💘 将会员送给他人"),
+        BotCommand("status", "⟳ 刷新账户状态"),
+        # BotCommand("transfer", "💘 将会员送给他人"),
         # BotCommand("add", "➕ Add user to premium"),
         # BotCommand("rem", "➖ Remove from premium"),
         BotCommand("rembot", "🤨 移除你的自定义机器人"),
         # BotCommand("settings", "⚙️ Personalize things"),
-        BotCommand("plan", "🗓️ 查看会员计划"),
+        # BotCommand("plan", "🗓️ 查看会员套餐"),
         BotCommand("terms", "🥺 服务条款"),
         BotCommand("help", "❓ 如果你是新手，仍然可以使用！"),
-        BotCommand("cancel", "🚫 取消登录/批处理/设置过程"),
+        BotCommand("cancel", "🚫 取消\"登录/批处理/设置\"过程"),
         BotCommand("stop", "🚫 停止批处理过程")
     ])
  
@@ -82,10 +82,10 @@ def build_help_page():
         #     "command": "/rem userID",
         #     "description": "Remove user from premium (Owner only)",
         # },
-        {
-            "command": "/transfer userID",
-            "description": "Transfer premium to your beloved major purpose for resellers (Premium members only)",
-        },
+        # {
+        #     "command": "/transfer userID",
+        #     "description": "Transfer premium to your beloved major purpose for resellers (Premium members only)",
+        # },
         # {"command": "/get", "description": "Get all user IDs (Owner only)"},
         # {
         #     "command": "/lock",
@@ -110,7 +110,7 @@ def build_help_page():
         # {"command": "/batch", "description": "Bulk extraction for posts (After login)"},
         {"command": "/logout", "description": "退出机器人"},
         # {"command": "/stats", "description": "Get bot stats"},
-        {"command": "/plan", "description": "查看会员套餐"},
+        # {"command": "/plan", "description": "查看会员套餐"},
         # {
         #     "command": "/speedtest",
         #     "description": "Test the server speed (not available in v3)",
@@ -214,7 +214,7 @@ async def terms(client, message):
         "> 📜 **条款与条件** 📜\n\n"
         "✨ 我们不对用户行为负责，也不推广受版权保护的内容。如果任何用户参与此类活动，完全由其自行承担责任。\n"
         "✨ 购买后，我们不保证计划的正常运行、停机或有效性。__用户的授权和禁令由我们自行决定；我们保留随时禁止或授权用户的权利。__\n"
-        "✨ 向我们付款**__并不保证__**获得 /batch 命令的授权。所有关于授权的决定均由我们自行决定。\n"
+        "✨ 向我们付款**__并不保证__**获得批量命令的授权。所有关于授权的决定均由我们自行决定。\n"
     )
      
     buttons = InlineKeyboardMarkup(

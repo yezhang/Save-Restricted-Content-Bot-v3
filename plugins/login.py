@@ -58,7 +58,7 @@ async def set_bot_token(C, m):
             del UB[user_id]  # Remove from dictionary
 
     if len(args) < 2:
-        await m.reply_text("⚠️ Please provide a bot token. Usage: `/setbto token`", quote=True)
+        await m.reply_text("⚠️ 请提供机器人 Token. 用法: `/setbot token`", quote=True)
         return
 
     bot_token = args[1].strip()
@@ -199,6 +199,8 @@ async def handle_login_steps(client, message):
             await login_cache[user_id]['temp_client'].disconnect()
         login_cache.pop(user_id, None)
         set_user_step(user_id, None)
+
+
 
 async def edit_message_safely(message, text):
     """Helper function to edit message and handle errors"""

@@ -34,19 +34,19 @@ async def status_handler(event):
         bot_active = True
     
     # Add premium status check
-    premium_status = "❌ Not a premium member"
+    premium_status = "❌ 普通用户（非高级会员）"
     premium_details = await get_premium_details(user_id)
     if premium_details:
         # Convert to IST timezone
         expiry_utc = premium_details["subscription_end"]
         expiry_ist = expiry_utc + timedelta(hours=5, minutes=30)
-        formatted_expiry = expiry_ist.strftime("%d-%b-%Y %I:%M:%S %p")
-        premium_status = f"✅ Premium until {formatted_expiry} (IST)"
+        formatted_expiry = expiry_ist.strftime("%Y-%m-%d %I:%M:%S %p")
+        premium_status = f"✅ 高级会员有效期至 {formatted_expiry} (IST)"
     
     await event.respond(
-        "**Your current status:**\n\n"
-        f"**Login Status:** {'✅ Active' if session_active else '❌ Inactive'}\n"
-        f"**Premium:** {premium_status}"
+        "**当前状态:**\n\n"
+        f"**登录状态:** {'✅ 活跃' if session_active else '❌ 不活跃'}\n"
+        f"**高级会员:** {premium_status}"
     )
 
 @bot_client.on(events.NewMessage(pattern='/transfer'))

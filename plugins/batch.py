@@ -176,7 +176,7 @@ async def prog(c, t, C, h, m, st):
         bar = '🟢' * int(p / 10) + '🔴' * (10 - int(p / 10))
         speed = c / (time.time() - st) / (1024 * 1024) if time.time() > st else 0
         eta = time.strftime('%M:%S', time.gmtime((t - c) / (speed * 1024 * 1024))) if speed > 0 else '00:00'
-        await C.edit_message_text(h, m, f"__**处理中...**__\n\n{bar}\n\n⚡**__进度__**: {c_mb:.2f} MB / {t_mb:.2f} MB\n📊 **__百分比__**: {p:.2f}%\n🚀 **__速度__**: {speed:.2f} MB/s\n⏳ **__剩余时间__**: {eta}\n\n**__Powered by @Yezegg__**")
+        await C.edit_message_text(h, m, f"__**处理中...**__\n\n{bar}\n\n⚡**__进度__**: {c_mb:.2f} MB / {t_mb:.2f} MB\n📊 **__百分比__**: {p:.2f}%\n🚀 **__速度__**: {speed:.2f} MB/s\n⏳ **__剩余时间__**: {eta}\n\n**__Powered by @baicaoyuan_001__**")
         if p >= 100: P.pop(m, None)
 
 async def send_direct(c, m, tcid, ft=None, rtmid=None):
@@ -204,6 +204,17 @@ async def send_direct(c, m, tcid, ft=None, rtmid=None):
         return False
 
 async def process_msg(c, u, m, d, lt, uid, i):
+    '''
+    Process a message and send it to the specified chat.
+    Args:
+    - c: userbot，每个用户绑定一个
+    - u: user client, 每个用户有一个客户端（使用用户的 session string 登录），pyrogram.Client
+    - m: 获取的消息实体（即一个link对应的消息内容）
+    - d: 消息 id
+    - lt: 消息的访问类型 (e.g., 'public', 'private').
+    - uid: 与机器人交互的用户 id
+    - i: 消息所在的 chat id
+    '''
     try:
         cfg_chat = await get_user_data_key(d, 'chat_id', None)
         tcid = d
@@ -363,15 +374,15 @@ async def process_cmd(c, m):
         return
     
     if await sub(c, m) == 1: return
-    pro = await m.reply_text('Doing some checks hold on...')
+    pro = await m.reply_text('正在进行一些检查，请稍候...')
     
     if is_user_active(uid):
-        await pro.edit('You have an active task. Use /stop to cancel it.')
+        await pro.edit('您有一个活动任务。使用 /stop 取消它。')
         return
     
     ubot = await get_ubot(uid)
     if not ubot:
-        await pro.edit('Add your bot with /setbot first')
+        await pro.edit('请先使用 /setbot 添加您的机器人')
         return
     
     Z[uid] = {'step': 'start' if cmd == 'batch' else 'start_single'}
@@ -400,23 +411,23 @@ async def text_handler(c, m):
         L = m.text
         i, d, lt = E(L)
         if not i or not d:
-            await m.reply_text('Invalid link format.')
+            await m.reply_text('无效的链接格式。')
             Z.pop(uid, None)
             return
         Z[uid].update({'step': 'count', 'cid': i, 'sid': d, 'lt': lt})
-        await m.reply_text('How many messages?')
+        await m.reply_text('您想提取多少条消息？')
 
     elif s == 'start_single':
         L = m.text
         i, d, lt = E(L)
         if not i or not d:
-            await m.reply_text('Invalid link format.')
+            await m.reply_text('无效的链接格式。')
             Z.pop(uid, None)
             return
 
         Z[uid].update({'step': 'process_single', 'cid': i, 'sid': d, 'lt': lt})
         i, s, lt = Z[uid]['cid'], Z[uid]['sid'], Z[uid]['lt']
-        pt = await m.reply_text('Processing...')
+        pt = await m.reply_text('正在处理（详细进度已发送到你的个人机器人）...')
         
         ubot = UB.get(uid)
         if not ubot:
@@ -465,7 +476,7 @@ async def text_handler(c, m):
         i, s, n, lt = Z[uid]['cid'], Z[uid]['sid'], Z[uid]['num'], Z[uid]['lt']
         success = 0
 
-        pt = await m.reply_text('Processing batch...')
+        pt = await m.reply_text('正在批量处理...')
         uc = await get_uclient(uid)
         ubot = UB.get(uid)
         
@@ -513,8 +524,8 @@ async def text_handler(c, m):
                 await asyncio.sleep(10)
             
             if j+1 == n:
-                await m.reply_text(f'Batch Completed ✅ Success: {success}/{n}')
-        
+                await m.reply_text(f'已完成批量处理 ✅ 成功: {success}/{n}')
+
         finally:
             await remove_active_batch(uid)
             Z.pop(uid, None)
