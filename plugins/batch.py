@@ -96,7 +96,7 @@ async def get_msg(c, u, i, d, lt):
                     emp[i] = getattr(xm, "empty", False)
                     if not emp[i]:
                         emp[i] = True
-                        print(f"Bot chat found successfully")
+                        print(f"Bot chat found successfully...")
                         return xm
                     
                 if emp[i]:
