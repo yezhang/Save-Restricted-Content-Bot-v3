@@ -445,22 +445,22 @@ async def text_handler(c, m):
 
         Z[uid].update({'step': 'process_single', 'cid': i, 'sid': d, 'lt': lt})
         i, s, lt = Z[uid]['cid'], Z[uid]['sid'], Z[uid]['lt']
-        pt = await m.reply_text('正在处理（详细进度已发送到你的个人机器人）...')
+        pt = await m.reply_text('正在处理（详细进度请查看个人机器人）...')
         
         ubot = UB.get(uid)
         if not ubot:
-            await pt.edit('Add bot with /setbot first')
+            await pt.edit('请使用 /setbot 添加您的机器人')
             Z.pop(uid, None)
             return
         
         uc = await get_uclient(uid)
         if not uc:
-            await pt.edit('Cannot proceed without user client.')
+            await pt.edit('无法在没有用户客户端的情况下继续。')
             Z.pop(uid, None)
             return
             
         if is_user_active(uid):
-            await pt.edit('Active task exists. Use /stop first.')
+            await pt.edit('存在活动任务。请先使用 /stop。')
             Z.pop(uid, None)
             return
 
@@ -472,7 +472,7 @@ async def text_handler(c, m):
                 res = await process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i)
                 await pt.edit(f'1/1: {res}')
             else:
-                await pt.edit('Message not found')
+                await pt.edit('消息资源未找到')
         except Exception as e:
             await pt.edit(f'Error: {str(e)[:50]}')
         finally:
@@ -480,7 +480,7 @@ async def text_handler(c, m):
 
     elif s == 'count':
         if not m.text.isdigit():
-            await m.reply_text('Enter valid number.')
+            await m.reply_text('请输入有效数字。')
             return
         
         count = int(m.text)
