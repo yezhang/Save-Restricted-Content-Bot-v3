@@ -489,10 +489,13 @@ async def text_handler(c, m):
         pt = await m.reply_text('正在处理（详细进度请查看个人机器人）...')
         
         ubot = UB.get(uid)
+        
+        # if not ubot:
+        #     await pt.edit('请使用 /setbot 添加您的机器人')
+        #     Z.pop(uid, None)
+        #     return
         if not ubot:
-            await pt.edit('请使用 /setbot 添加您的机器人')
-            Z.pop(uid, None)
-            return
+            ubot = X # 不使用个人机器人，直接使用官方入口机器人
         
         uc = await get_uclient(uid)
         if not uc:

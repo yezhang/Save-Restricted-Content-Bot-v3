@@ -58,7 +58,7 @@ async def set_bot_token(C, m):
             del UB[user_id]  # Remove from dictionary
 
     if len(args) < 2:
-        await m.reply_text("⚠️ 请提供机器人 Token. 用法: `/setbot token`", quote=True)
+        await m.reply_text("⚠️ 请提供机器人 Token. 用法: `/setbot <替换为真实的 bot token>`", quote=True)
         return
 
     bot_token = args[1].strip()
