@@ -352,3 +352,114 @@ async def get_premium_details(user_id):
     except Exception as e:
         logger.error(f"Error getting premium details for {user_id}: {e}")
         return None
+
+
+async def get_user_free_limit_today(user_id):
+    """查询用户今天的免费限制额度；
+    判断方法是，如果“没有 free limit 配置”或者“有配置，但是 quotaResetAt 已经过期”，
+    则返回默认值，并更新到数据库中。
+
+
+    Args:
+        user_id (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    try:
+        default_free_limit = {
+            "filesUploadedToday": 10,  # 10 files
+            "totalSizeUploadedToday": 4 * 1024 * 1024 * 1024,  # 4 GB
+            "quotaResetAt": datetime.now()  # Reset at midnight
+        }
+        user_free_limit = await get_user_data_key(user_id, "free_limit", default_free_limit)
+        if not user_free_limit:
+            user_free_limit = default_free_limit
+        elif "quotaResetAt" not in user_free_limit or user_free_limit["quotaResetAt"].date() < datetime.now().date():
+            # Reset the free limit if it has expired
+            user_free_limit = default_free_limit
+
+        # Save the free limit to the database
+        # This ensures that the free limit is always up-to-date in the database
+        await save_user_data(user_id, "free_limit", user_free_limit)
+
+        # Return the free limit data
+        return user_free_limit
+    except Exception as e:
+        logger.error(f"Error getting free limit for {user_id}: {e}")
+        return 0
+    
+async def get_user_free_limit_usage(user_id):
+    """获取用户今天的免费配额使用情况。
+
+    Args:
+        user_id (_type_): 用户 ID
+
+    Returns:
+        _type_: 用户的免费配额使用情况
+    """
+    try:
+        user_free_limit_usage = await get_user_data_key(user_id, "free_limit_usage", None)
+        if not user_free_limit_usage:
+            user_free_limit_usage = {
+                "filesUploadedToday": 0,
+                "totalSizeUploadedToday": 0,
+                "quotaResetAt": datetime.now() # 只比较日期，不比较时间
+            }
+        return user_free_limit_usage
+    except Exception as e:
+        logger.error(f"Error getting free limit usage for {user_id}: {e}")
+        return None
+    
+async def is_user_free_limit_exceeded(user_id):
+    """检查用户的免费配额是否超出限制。
+
+    Args:
+        user_id (_type_): 用户 ID
+
+    Returns:
+        bool: 如果超出限制则返回 True，否则返回 False
+    """
+    try:
+        user_free_limit = await get_user_free_limit_today(user_id)
+        if not user_free_limit:
+            return False  # No free limit configured
+        user_free_quota_usage = await get_user_free_limit_usage(user_id)
+        if not user_free_quota_usage:
+            return False  # No free quota usage found
+        # Check if the user has exceeded the free limit
+
+        if (user_free_quota_usage["filesUploadedToday"] >= user_free_limit["filesUploadedToday"] or
+            user_free_quota_usage["totalSizeUploadedToday"] > user_free_limit["totalSizeUploadedToday"]):
+            return True
+        
+        return False
+    except Exception as e:
+        logger.error(f"Error checking free limit for {user_id}: {e}")
+        return False
+    
+async def update_user_free_quota_usage(user_id, file_size):
+    """更新用户的免费配额使用情况。
+
+    Args:
+        user_id (_type_): 用户 ID
+        file_size (_type_): 文件大小，单位为字节
+    """
+    try:
+        user_free_limit = await get_user_data_key(user_id, "free_limit_usage", None)
+        if not user_free_limit:
+            user_free_limit = {
+                "filesUploadedToday": 0,
+                "totalSizeUploadedToday": 0,
+                "quotaResetAt": datetime.now() # 只比较日期，不比较时间
+            }
+        
+        # Update the usage
+        user_free_limit["filesUploadedToday"] += 1
+        user_free_limit["totalSizeUploadedToday"] += file_size
+        
+        # Save the updated free limit back to the database
+        await save_user_data(user_id, "free_limit_usage", user_free_limit)
+    except Exception as e:
+        logger.error(f"Error updating free quota for {user_id}: {e}")
+

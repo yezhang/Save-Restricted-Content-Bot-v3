@@ -9,6 +9,7 @@ from pyrogram.errors import UserNotParticipant
 from config import API_ID, API_HASH, LOG_GROUP, STRING, FORCE_SUB, FREEMIUM_LIMIT, PREMIUM_LIMIT
 from utils.func import get_user_data, screenshot, thumbnail, get_video_metadata
 from utils.func import get_user_data_key, process_text_with_rules, is_premium_user, E
+from utils.func import is_user_free_limit_exceeded, update_user_free_quota_usage
 from shared_client import app as X
 from plugins.settings import rename_file
 from plugins.start import subscribe as sub
@@ -173,6 +174,14 @@ async def get_msg(c, u, i, d, lt):
 
 
 async def get_ubot(uid):
+    """查询用户对应的个人机器人客户端
+
+    Args:
+        uid (_type_): _description_
+
+    Returns:
+        pyrogram.Client: 个人机器人客户端实例
+    """
     bt = await get_user_data_key(uid, "bot_token", None)
     if not bt: return None
     if uid in UB: return UB.get(uid)
@@ -186,6 +195,14 @@ async def get_ubot(uid):
         return None
 
 async def get_uclient(uid):
+    """查询用户的 client（对应每个实际登录的用户）
+
+    Args:
+        uid (_type_): _description_
+
+    Returns:
+        pyrogram.Client: 用户登录的客户端实例 或 共享 Telegram 客户端实例
+    """
     ud = await get_user_data(uid)
     ubot = UB.get(uid)
     cl = UC.get(uid)
@@ -271,11 +288,6 @@ async def process_msg(c, u, m, d, lt, uid, i):
         if m.media:
             logger.info('找到消息中的媒体资源')
 
-            if m.video:
-                if m.video.file_size:
-                    if m.video.file_size > 2 * 1024 * 1024 * 1024: # 大于2GB
-                        return '文件大于2GB，无法处理。请联系管理员 @Yezegg。'
-
             orig_text = m.caption.markdown if m.caption else ''
             proc_text = await process_text_with_rules(d, orig_text)
             user_cap = await get_user_data_key(d, 'caption', '')
@@ -285,6 +297,11 @@ async def process_msg(c, u, m, d, lt, uid, i):
                 await send_direct(c, m, tcid, ft, rtmid)
                 return '已直接发送'
                 # return 'Sent directly.'
+            
+            if m.video:
+                if m.video.file_size:
+                    if m.video.file_size > 2 * 1024 * 1024 * 1024: # 大于2GB
+                        return '文件大于2GB，无法处理。请联系管理员 @Yezegg。'
             
             st = time.time()
 
@@ -326,10 +343,10 @@ async def process_msg(c, u, m, d, lt, uid, i):
                 f = await u.download_media(m, file_name=c_name, progress=prog, progress_args=(c, d, p.id, st))
             
             if not f:
-                await c.edit_message_text(d, p.id, 'Failed.')
-                return 'Failed.'
-            
-            await c.edit_message_text(d, p.id, 'Renaming...')
+                await c.edit_message_text(d, p.id, '失败.')
+                return '失败.'
+
+            await c.edit_message_text(d, p.id, '重命名中...')
             if (
                 (m.video and m.video.file_name) or
                 (m.audio and m.audio.file_name) or
@@ -337,7 +354,8 @@ async def process_msg(c, u, m, d, lt, uid, i):
             ):
                 f = await rename_file(f, d, p)
             
-            fsize = os.path.getsize(f) / (1024 * 1024 * 1024)
+            fsize_byte = os.path.getsize(f)
+            fsize = fsize_byte / (1024 * 1024 * 1024) # 转换为 GB
             th = thumbnail(d)
             
             if fsize > 2 and Y:
@@ -374,7 +392,7 @@ async def process_msg(c, u, m, d, lt, uid, i):
                 
                 return 'Done (Large file).'
             
-            await c.edit_message_text(d, p.id, 'Uploading...')
+            await c.edit_message_text(d, p.id, '发送中...')
             st = time.time()
 
             try:
@@ -407,12 +425,17 @@ async def process_msg(c, u, m, d, lt, uid, i):
                                         progress=prog, progress_args=(c, d, p.id, st), 
                                         reply_to_message_id=rtmid)
             except Exception as e:
-                await c.edit_message_text(d, p.id, f'Upload failed: {str(e)[:30]}')
+                await c.edit_message_text(d, p.id, f'发送失败: {str(e)[:30]}')
                 if os.path.exists(f): os.remove(f)
                 return '失败.'
             
+            # 更新用户的免费下载配额，高级用户不用更新免费配额
+            if not await is_premium_user(uid):
+                await update_user_free_quota_usage(uid, fsize_byte)
+            
             os.remove(f)
             await c.delete_messages(d, p.id)
+            
             
             return '已完成.'
             
@@ -428,9 +451,15 @@ async def process_cmd(c, m):
     uid = m.from_user.id
     cmd = m.command[0]
     
-    if FREEMIUM_LIMIT == 0 and not await is_premium_user(uid):
-        await m.reply_text("This bot does not provide free servies, get subscription from OWNER")
-        return
+    # 查询用户的套餐身份
+    if not await is_premium_user(uid):
+        if await is_user_free_limit_exceeded(uid):
+            await m.reply_text(f'您的免费用户下载次数或文件大小已用完（可以等第二天恢复）。可以使用 /status 查询状态。请联系管理员 @Yezegg 了解更多信息。')
+            return
+
+    # if FREEMIUM_LIMIT == 0 and not await is_premium_user(uid):
+    #     await m.reply_text("This bot does not provide free servies, get subscription from OWNER")
+    #     return
     
     if await sub(c, m) == 1: return
     pro = await m.reply_text('正在进行一些检查，请稍候...')
@@ -439,10 +468,10 @@ async def process_cmd(c, m):
         await pro.edit('您有一个活动任务。使用 /stop 取消它。')
         return
     
-    ubot = await get_ubot(uid)
-    if not ubot:
-        await pro.edit('请先使用 /setbot 添加您的机器人')
-        return
+    # ubot = await get_ubot(uid)
+    # if not ubot:
+    #     await pro.edit('请先使用 /setbot 添加您的机器人')
+    #     return
     
     Z[uid] = {'step': 'start' if cmd == 'batch' else 'start_single'}
     await pro.edit(f'发送 {"第一个链接..." if cmd == "batch" else "链接（link）……"}.')
@@ -486,7 +515,7 @@ async def text_handler(c, m):
 
         Z[uid].update({'step': 'process_single', 'cid': i, 'sid': d, 'lt': lt})
         i, s, lt = Z[uid]['cid'], Z[uid]['sid'], Z[uid]['lt']
-        pt = await m.reply_text('正在处理（详细进度请查看个人机器人）...')
+        pt = await m.reply_text('正在处理...')
         
         ubot = UB.get(uid)
         

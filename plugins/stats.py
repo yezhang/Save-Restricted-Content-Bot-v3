@@ -6,6 +6,7 @@ from datetime import timedelta, datetime
 from shared_client import client as bot_client
 from telethon import events
 from utils.func import get_premium_details, is_private_chat, get_display_name, get_user_data, premium_users_collection, is_premium_user
+from utils.func import get_user_free_limit_usage, get_user_free_limit_today
 from config import OWNER_ID
 import logging
 logging.basicConfig(format=
@@ -35,17 +36,35 @@ async def status_handler(event):
     
     # Add premium status check
     premium_status = "❌ 普通用户（非高级会员）"
+
+    free_user_limit = await get_user_free_limit_today(user_id)
+
+    free_user_quota = await get_user_free_limit_usage(user_id)
+    if free_user_quota and free_user_limit:
+        # print(free_user_quota, free_user_limit)
+
+        # Check if user has exceeded free quota
+        file_usage = free_user_quota['filesUploadedToday']
+        file_limit = free_user_limit['filesUploadedToday']
+        
+        total_size_today = free_user_quota['totalSizeUploadedToday'] / (1024 * 1024)  # Convert to MB
+        total_size_limit = free_user_limit['totalSizeUploadedToday'] / (1024 * 1024)  # Convert to MB
+
+        # 文件大小保留一位小数
+        free_user_status = f"✅ 免费用户 - 已使用 {file_usage} / {file_limit}个文件, {total_size_today:.1f} MB / {total_size_limit:.1f} MB"
+
     premium_details = await get_premium_details(user_id)
     if premium_details:
         # Convert to IST timezone
         expiry_utc = premium_details["subscription_end"]
-        expiry_ist = expiry_utc + timedelta(hours=5, minutes=30)
+        expiry_ist = expiry_utc + timedelta(hours=8, minutes=0)
         formatted_expiry = expiry_ist.strftime("%Y-%m-%d %I:%M:%S %p")
-        premium_status = f"✅ 高级会员有效期至 {formatted_expiry} (IST)"
+        premium_status = f"✅ 高级会员有效期至 {formatted_expiry}"
     
     await event.respond(
         "**当前状态:**\n\n"
         f"**登录状态:** {'✅ 活跃' if session_active else '❌ 不活跃'}\n"
+        f"**免费用户:** {free_user_status}\n"
         f"**高级会员:** {premium_status}"
     )
 

@@ -9,7 +9,18 @@ import sys
 
 client = TelegramClient("telethonbot", API_ID, API_HASH)
 app = Client("pyrogrambot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+"""pyrogram client for bot operations.
+
+Returns:
+    _type_: pyrogram.Client
+"""
+
 userbot = Client("4gbbot", api_id=API_ID, api_hash=API_HASH, session_string=STRING)
+"""pyrogram client for user(4gb client) operations.
+
+Returns:
+    _type_: pyrogram.Client
+"""
 
 async def start_client():
     if not client.is_connected():
@@ -19,6 +30,7 @@ async def start_client():
         try:
             await userbot.start()
             print("Userbot started...")
+            print(await userbot.export_session_string())
         except Exception as e:
             print(f"Hey honey!! check your premium string session, it may be invalid of expire {e}")
             sys.exit(1)
