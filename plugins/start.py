@@ -27,57 +27,12 @@ async def subscribe(app, message):
             await message.reply_text(f"出错了。请联系管理员并告知该信息 {ggn}")
             return 1 
      
-@app.on_message(filters.command("set"))
-async def set(_, message):
-    if message.from_user.id not in OWNER_ID:
-        await message.reply("You are not authorized to use this command.")
-        return
-     
-    await app.set_bot_commands([
-        BotCommand("start", "🚀 启动机器人"),
-        # BotCommand("batch", "🫠 Extract in bulk"),
-        BotCommand("single", "🫠 提取单个文件"),
-        BotCommand("login", "🔑 登录你的个人机器人"),
-        BotCommand("setbot", "🧸 添加你的个人机器人用来接收文件"),
-        BotCommand("logout", "🚪 退出机器人"),
-        # BotCommand("adl", "👻 Download audio from 30+ sites"),
-        # BotCommand("dl", "💀 Download videos from 30+ sites"),
-        BotCommand("status", "⟳ 刷新账户状态"),
-        # BotCommand("transfer", "💘 将会员送给他人"),
-        # BotCommand("add", "➕ Add user to premium"),
-        # BotCommand("rem", "➖ Remove from premium"),
-        BotCommand("rembot", "🤨 移除你的自定义机器人"),
-        # BotCommand("settings", "⚙️ Personalize things"),
-        # BotCommand("plan", "🗓️ 查看会员套餐"),
-        BotCommand("terms", "🥺 服务条款"),
-        BotCommand("help", "❓ 如果你是新手，仍然可以使用！"),
-        BotCommand("cancel", "🚫 取消\"登录/批处理/设置\"过程"),
-        BotCommand("stop", "🚫 停止批处理过程")
-    ])
- 
-    await message.reply("✅ Commands configured successfully!")
-
-
-
-help_pages = []
-
-
-def split_iter(lst):
-    mid = len(lst) // 2
-    return list(islice(lst, mid)), list(islice(lst, mid, None))
-
-def build_help_page():
-    """Builds the help page with commands and descriptions."""
-
-    cmd_settings_description = (
-        "> 1. SETCHATID : To directly upload in channel or group or user's dm use it with -100[chatID]\n"
-        "> 2. SETRENAME : To add custom rename tag or username of your channels\n"
-        "> 3. CAPTION : To add custom caption\n"
-        "> 4. REPLACEWORDS : Can be used for words in deleted set via REMOVE WORDS\n"
-        "> 5. RESET : To set the things back to default\n\n"
-        "> You can set CUSTOM THUMBNAIL, PDF WATERMARK, VIDEO WATERMARK, SESSION-based login, etc. from settings\n\n"
-    )
-    command_list = [
+command_list = [
+        {
+            "command": "/start", 
+            "name": "🚀 启动机器人", 
+            "description": "首次使用时，请启动机器人"
+        },
         # {"command": "/add userID", "description": "Add user to premium (Owner only)"},
         # {
         #     "command": "/rem userID",
@@ -101,23 +56,70 @@ def build_help_page():
         #     "description": "Download audio (Not available in v3 if you are using)",
         # },
         {
+            "command": "/batch",
+            "name": "🫠 批量提取视频(会员)",
+            "description": "批量提取多个视频文件 (登录后)"
+        },
+        {
             "command": "/single",
+            "name": "🫠 提取单个文件",
             "description": "提取单个文件。先点击该命令给机器人，然后发送链接",
         },
         {
             "command": "/login",
-            "description": "登录后可以访问私有频道和群组",
+            "name": "🔑 登录你的个人机器人",
+            "description": "登录后可以访问私有频道和群组;你会收到 Telegram 提醒，请点击“是我”或“It's me”按钮",
         },
-        # {"command": "/batch", "description": "Bulk extraction for posts (After login)"},
-        {"command": "/logout", "description": "退出机器人"},
-        # {"command": "/stats", "description": "Get bot stats"},
-        # {"command": "/plan", "description": "查看会员套餐"},
+        
+        {
+            "command": "/logout", 
+            "name": "退出个人账户",
+            "description": "退出 /login 命令"
+        },
+        {
+            "command": "/cancel", 
+            "name": "🚫 取消\"登录\"过程",
+            "description": "取消进行中的登录"
+        },
+        {
+            "command": "/setbot", 
+            "name": "🧸 添加你的个人机器人用来接收文件", 
+            "description": "使用 @BotFather 生成个人机器人，然后将 bot token 配置到这里；配置后，视频将转发到个人机器人"
+        },
+        {
+            "command": "/rembot", 
+            "name": "🤨 移除你的个人机器人", 
+            "description": "移除 /setbot 命令设置的机器人；移除后，系统将使用 @PickingRocksAiBot 转发视频"
+        },
+        {
+            "command": "/status", 
+            "name": "⟳ 刷新账户状态",
+            "description": "查询账户状态（免费配额、套餐余额等）"
+        },
+        # {
+        #     "command": "/plan", 
+        #     "name": "🗓️ 查看套餐",
+        #     "description": "查看会员套餐的明细"
+        # },
         # {
         #     "command": "/speedtest",
         #     "description": "Test the server speed (not available in v3)",
         # },
-        # {"command": "/terms", "description": "Terms and conditions"},
-        {"command": "/cancel", "description": "取消进行中的批处理"},
+        {
+            "command": "/terms", 
+            "name": "🥺 服务条款",
+            "description": "服务条款"
+        },
+        {
+            "command": "/help", 
+            "name": "❓ 如果你是新手，请使用帮助命令",
+            "description": "获取帮助信息（解释各个命令的用法）"
+        },
+        {
+            "command": "/stopbatch", 
+            "name": "🚫 取消\"批处理\"过程",
+            "description": "取消进行中的批处理"
+        },
         # {"command": "/myplan", "description": "获取有关您计划的详细信息"},
         # {"command": "/session", "description": "Generate Pyrogram V2 session"},
         # {
@@ -125,6 +127,44 @@ def build_help_page():
         #     "description": cmd_settings_description,
         # },
     ]
+
+@app.on_message(filters.command("set"))
+async def set(_, message):
+    if message.from_user.id not in OWNER_ID:
+        await message.reply("You are not authorized to use this command.")
+        return
+    
+    # 使用 command_list 中的命令设置机器人菜单，如果命令有 / 前缀则移除
+    bot_commands_list = []
+    for cmd in command_list:
+        # 移除 cmd.command 的名称前缀
+        bot_commands_list.append(BotCommand(cmd['command'].removeprefix('/'), cmd['name']))
+    
+    await app.set_bot_commands(bot_commands_list)
+    
+    await message.reply("✅ 命令配置成功!")
+
+
+
+help_pages = []
+
+
+def split_iter(lst):
+    mid = len(lst) // 2
+    return list(islice(lst, mid)), list(islice(lst, mid, None))
+
+def build_help_page():
+    """Builds the help page with commands and descriptions."""
+
+    cmd_settings_description = (
+        "> 1. SETCHATID : To directly upload in channel or group or user's dm use it with -100[chatID]\n"
+        "> 2. SETRENAME : To add custom rename tag or username of your channels\n"
+        "> 3. CAPTION : To add custom caption\n"
+        "> 4. REPLACEWORDS : Can be used for words in deleted set via REMOVE WORDS\n"
+        "> 5. RESET : To set the things back to default\n\n"
+        "> You can set CUSTOM THUMBNAIL, PDF WATERMARK, VIDEO WATERMARK, SESSION-based login, etc. from settings\n\n"
+    )
+    
 
     # 将命令列表分为数量相等的两页
     command_list_page1, command_list_page2 = split_iter(command_list)
