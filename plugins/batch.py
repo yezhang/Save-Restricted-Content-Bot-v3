@@ -526,6 +526,9 @@ async def process_cmd(c, m):
 @X.on_message(filters.incoming & filters.command(['stopbatch']))
 async def stop_batch_cmd(c, m):
     uid = m.from_user.id
+
+    await save_user_activity(uid, m.from_user, "/stopbatch")
+
     if is_user_active(uid):
         if await request_batch_cancel(uid):
             await m.reply_text('Cancellation requested. The current batch will stop after the current download completes.')
@@ -539,6 +542,9 @@ async def stop_batch_cmd(c, m):
     'pay', 'redeem', 'gencode', 'single', 'generate', 'keyinfo', 'encrypt', 'decrypt', 'keys', 'setbot', 'rembot']))
 async def text_handler(c, m):
     uid = m.from_user.id
+
+    await save_user_activity(uid, m.from_user, "text_handler", {"text": m.text})
+
     if uid not in Z: return
     s = Z[uid].get('step')
 
