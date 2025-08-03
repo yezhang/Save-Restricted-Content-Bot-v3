@@ -25,7 +25,7 @@ async def status_handler(event):
         return
     
     """Handle /status command to check user session and bot status"""
-    user_id = event.sender_id
+
     user_data = await get_user_data(user_id)
     
     session_active = False
@@ -65,11 +65,15 @@ async def status_handler(event):
         formatted_expiry = expiry_ist.strftime("%Y-%m-%d %I:%M:%S %p")
         premium_status = f"✅ 高级会员有效期至 {formatted_expiry}"
     
+    ## 根据会员状态，设置响应的状态信息
+    if premium_details:
+        member_status = premium_status
+    else:
+        member_status = free_user_status
     await event.respond(
         "**当前状态:**\n\n"
         f"**登录状态:** {'✅ 活跃' if session_active else '❌ 不活跃'}\n"
-        f"**免费用户:** {free_user_status}\n"
-        f"**高级会员:** {premium_status}"
+        f"**会员状态:** {member_status}"
     )
 
 @bot_client.on(events.NewMessage(pattern='/transfer'))
