@@ -595,7 +595,7 @@ async def text_handler(c, m):
 
             logger.info(f'Processing message: msg.id={msg.id}, msg.media={msg.media}, msg.chat.id={msg.chat.id}')
             if msg:
-                res = await process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i)
+                res = await process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i, L)
                 await pt.edit(f'1/1: {res}')
             else:
                 await pt.edit('消息资源未找到')
