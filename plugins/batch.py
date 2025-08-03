@@ -490,7 +490,9 @@ async def process_msg(c, u, m, d, lt, uid, i):
 async def process_cmd(c, m):
     uid = m.from_user.id
     cmd = m.command[0]
-    
+
+    await save_user_activity(uid, m.from_user, f"/{cmd}")
+
     # 查询用户的套餐身份
     if not await is_premium_user(uid):
         if await is_user_free_limit_exceeded(uid):
