@@ -290,7 +290,7 @@ async def send_direct(c, m, tcid, ft=None, rtmid=None):
             return False
         return True
     except Exception as e:
-        print(f'Direct send error: {e}')
+        logger.error(f'Direct send error: {e}')
         return False
 
 async def process_msg(c, u, m, d, lt, uid, i):
@@ -326,9 +326,14 @@ async def process_msg(c, u, m, d, lt, uid, i):
             ft = f'{proc_text}\n\n{user_cap}' if proc_text and user_cap else user_cap if user_cap else proc_text
             
             if lt == 'public' and not emp.get(i, False):
-                await send_direct(c, m, tcid, ft, rtmid)
-                return '已直接发送'
-                # return 'Sent directly.'
+                if not (await send_direct(c, m, tcid, ft, rtmid)):
+                    # 如果个人机器人发送失败，则使用用户客户端发送
+                    # 发送失败时，可能会遇到 400 MEDIA_EMPTY 错误，这可能是因为 file_id 是绑定生成的账户的
+                    send_is_success = await send_direct(u, m, tcid, ft, rtmid) 
+                    if send_is_success:
+                        return '已直接发送'
+                    else:
+                        pass # 使用下载方法继续处理
             
             if m.video:
                 if m.video.file_size:
@@ -467,6 +472,7 @@ async def process_msg(c, u, m, d, lt, uid, i):
             
             # 添加下载记录
             await add_download_record(uid, msg_link, fsize_byte)
+
             os.remove(f)
             await c.delete_messages(d, p.id)
             
