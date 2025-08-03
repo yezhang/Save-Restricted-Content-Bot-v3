@@ -370,7 +370,7 @@ async def process_msg(c, u, m, d, lt, uid, i, msg_link):
                     file_name = f"{msg_name}.jpg"
                 c_name = sanitize(file_name)
     
-            logger.info(f'下载媒体(download_media()), {c_name}')
+            logger.info(f'下载媒体(download_media), {c_name}')
 
             # 如果文件已存在，直接使用已存在的文件缓存
             if os.path.exists(c_name):
@@ -581,7 +581,7 @@ async def text_handler(c, m):
         
         uc = await get_uclient(uid)
         if not uc:
-            await pt.edit('无法在没有用户客户端的情况下继续。')
+            await pt.edit('无法在没有用户客户端的情况下继续。请使用 /login 登录您的账号。')
             Z.pop(uid, None)
             return
             
@@ -592,7 +592,7 @@ async def text_handler(c, m):
 
         try:
             msg = await get_msg(ubot, uc, i, s, lt)
-            # print(msg)
+
             logger.info(f'Processing message: msg.id={msg.id}, msg.media={msg.media}, msg.chat.id={msg.chat.id}')
             if msg:
                 res = await process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i)
@@ -600,7 +600,7 @@ async def text_handler(c, m):
             else:
                 await pt.edit('消息资源未找到')
         except Exception as e:
-            await pt.edit(f'Error: {str(e)[:50]}')
+            await pt.edit(f'错误（请先通过 /login 登录您的账号）: {str(e)[:50]}')
         finally:
             Z.pop(uid, None)
 
@@ -613,7 +613,7 @@ async def text_handler(c, m):
         maxlimit = PREMIUM_LIMIT if await is_premium_user(uid) else FREEMIUM_LIMIT
 
         if count > maxlimit:
-            await m.reply_text(f'Maximum limit is {maxlimit}.')
+            await m.reply_text(f'最大限制是 {maxlimit}.')
             return
 
         Z[uid].update({'step': 'process', 'did': str(m.chat.id), 'num': count})
@@ -646,7 +646,7 @@ async def text_handler(c, m):
             for j in range(n):
                 
                 if should_cancel(uid):
-                    await pt.edit(f'Cancelled at {j}/{n}. Success: {success}')
+                    await pt.edit(f'取消位置 {j}/{n}. 成功: {success}')
                     break
                 
                 await update_batch_progress(uid, j, success)
@@ -656,8 +656,9 @@ async def text_handler(c, m):
                 try:
                     msg = await get_msg(ubot, uc, i, mid, lt)
                     if msg:
-                        res = await process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i)
-                        if 'Done' in res or 'Copied' in res or 'Sent' in res:
+                        # Message.link 属性：Generate a link to this message, only for groups and channels.
+                        res = await process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i, msg.link)
+                        if '完成' in res or 'Copied' in res or '发送' in res:
                             success += 1
                     else:
                         pass

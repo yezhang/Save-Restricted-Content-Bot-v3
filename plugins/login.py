@@ -34,6 +34,7 @@ async def login_command(client, message):
     await message.delete()
 
     status_msg = await message.reply(
+        "注意，登录后，Telegram 会发送一条消息，询问是否是你本人，请点击“是我”或“It's me”按钮。\n\n"
         """请输入手机号（带国家代码）
 例如: `+861234567890`"""
         )

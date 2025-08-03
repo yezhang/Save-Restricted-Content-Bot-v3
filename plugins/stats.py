@@ -21,7 +21,7 @@ async def status_handler(event):
     await save_user_activity(user_id, event.message, "/status")
 
     if not await is_private_chat(event):
-        await event.respond("This command can only be used in private chats for security reasons.")
+        await event.respond("此命令只能在私聊中使用以确保安全。")
         return
     
     """Handle /status command to check user session and bot status"""

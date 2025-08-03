@@ -57,11 +57,11 @@ Example: /add 123456 1 week"""
             formatted_expiry = expiry_ist.strftime('%d-%b-%Y %I:%M:%S %p')
             await event.respond(
                 f"""✅ User {target_user_id} added as premium member
-Subscription valid until: {formatted_expiry} (IST)"""
+Subscription valid until: {formatted_expiry} (Asia/Shanghai)"""
                 )
             await bot_client.send_message(target_user_id,
-                f"""✅ Your have been added as premium member
-**Validity upto**: {formatted_expiry} (IST)"""
+                f"""✅ 你已被添加为高级会员
+**有效期至**: {formatted_expiry} (Asia/Shanghai)"""
                 )
         else:
             await event.respond(f'❌ Failed to add premium user: {result}')
