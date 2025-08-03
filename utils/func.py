@@ -389,7 +389,7 @@ async def get_user_free_limit_today(user_id):
     """
     try:
         default_free_limit = {
-            "filesUploadedToday": 10,  # 10 files
+            "filesUploadedToday": 5,  # 5 files
             "totalSizeUploadedToday": 4 * 1024 * 1024 * 1024,  # 4 GB
             "quotaResetAt": datetime.now()  # Reset at midnight
         }
