@@ -91,11 +91,11 @@ async def start_handler(client, message):
 
     hello_message = f"""
 <b>嗨，{message.from_user.mention}（id= {message.from_user.id}）！</b>
-<b>欢迎使用 本机器人！</b>
-<b>请注意：</b>
-<b>1. 在禁止转发的情况下，我仍然可以转发频道或群组的视频、文件</b>
-<b>2. 如果需要获取公有频道/群的视频，执行 /single 后，直接发送公有频道的链接</b>
-<b>3. 如果需要获取私有频道/群的视频，请先执行 /login（只需一次），然后执行 /single，最后发送消息链接。后续下载中，每次执行 /single 后，发送链接即可</b>
+欢迎使用 本机器人！
+请注意：
+1. 在禁止转发的情况下，我仍然可以转发频道或群组的视频、文件
+2. 如果需要获取 <b>公有</b> 频道/群的视频，执行 /single 后，直接发送公有频道的链接
+3. 如果需要获取 <b>私有</b> 频道/群的视频，请先执行 /login（只需一次），然后执行 /single，最后发送消息链接。后续下载中，每次执行 /single 后，发送链接即可
 """
 
     await message.reply_text(hello_message, reply_markup=kb, quote=False)
