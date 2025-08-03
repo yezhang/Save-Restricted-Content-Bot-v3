@@ -446,7 +446,7 @@ async def process_msg(c, u, m, d, lt, uid, i):
         logger.error(f'Error processing message: {e}')
         return f'Error: {str(e)[:37]}. 请联系管理员 @Yezegg。'
 
-@X.on_message(filters.command(['batch', 'single']))
+@X.on_message(filters.incoming & filters.command(['batch', 'single']))
 async def process_cmd(c, m):
     uid = m.from_user.id
     cmd = m.command[0]
@@ -476,8 +476,8 @@ async def process_cmd(c, m):
     Z[uid] = {'step': 'start' if cmd == 'batch' else 'start_single'}
     await pro.edit(f'发送 {"第一个链接..." if cmd == "batch" else "链接（link）……"}.')
 
-@X.on_message(filters.command(['cancel', 'stop']))
-async def cancel_cmd(c, m):
+@X.on_message(filters.incoming & filters.command(['stopbatch']))
+async def stop_batch_cmd(c, m):
     uid = m.from_user.id
     if is_user_active(uid):
         if await request_batch_cancel(uid):
@@ -487,8 +487,8 @@ async def cancel_cmd(c, m):
     else:
         await m.reply_text('No active batch process found.')
 
-@X.on_message(filters.text & filters.private & ~login_in_progress & ~filters.command([
-    'start', 'batch', 'cancel', 'login', 'logout', 'stop', 'set', 
+@X.on_message(filters.text & filters.private & filters.incoming & ~login_in_progress & ~filters.command([
+    'start', 'batch', 'cancel', 'login', 'logout', 'stopbatch', 'set', 
     'pay', 'redeem', 'gencode', 'single', 'generate', 'keyinfo', 'encrypt', 'decrypt', 'keys', 'setbot', 'rembot']))
 async def text_handler(c, m):
     uid = m.from_user.id
