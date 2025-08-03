@@ -313,7 +313,7 @@ async def get_video_metadata(file_path):
 
 async def add_premium_user(user_id, duration_value, duration_unit):
     try:
-        now = datetime.now()
+        now = datetime.now() # 该函数生成的是当前时间的时间戳（带有时区信息）
         expiry_date = None
         
         if duration_unit == "min":

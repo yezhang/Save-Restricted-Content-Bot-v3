@@ -52,9 +52,7 @@ Example: /add 123456 1 week"""
         success, result = await add_premium_user(target_user_id,
             duration_value, duration_unit)
         if success:
-            expiry_utc = result
-            expiry_ist = expiry_utc + timedelta(hours=5, minutes=30)
-            formatted_expiry = expiry_ist.strftime('%d-%b-%Y %I:%M:%S %p')
+            formatted_expiry = result.strftime('%d-%b-%Y %I:%M:%S %p')
             await event.respond(
                 f"""✅ User {target_user_id} added as premium member
 Subscription valid until: {formatted_expiry} (Asia/Shanghai)"""

@@ -2,7 +2,7 @@
 # Licensed under the GNU General Public License v3.0.  
 # See LICENSE file in the repository root for full license text.
 
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from shared_client import client as bot_client
 from telethon import events
 from utils.func import get_premium_details, is_private_chat, get_display_name, get_user_data, premium_users_collection, is_premium_user
@@ -61,7 +61,7 @@ async def status_handler(event):
     if premium_details:
         # Convert to IST timezone
         expiry_utc = premium_details["subscription_end"]
-        expiry_ist = expiry_utc + timedelta(hours=8, minutes=0)
+        expiry_ist = expiry_utc + timedelta(hours=0, minutes=0)
         formatted_expiry = expiry_ist.strftime("%Y-%m-%d %I:%M:%S %p")
         premium_status = f"✅ 高级会员有效期至 {formatted_expiry}"
     
@@ -127,7 +127,7 @@ async def transfer_premium_handler(event):
             'expireAt': expiry_date, 'transferred_from': user_id,
             'transferred_from_name': sender_name}}, upsert=True)
         await premium_users_collection.delete_one({'user_id': user_id})
-        expiry_ist = expiry_date + timedelta(hours=5, minutes=30)
+        expiry_ist = expiry_date + timedelta(hours=0, minutes=0)
         formatted_expiry = expiry_ist.strftime('%d-%b-%Y %I:%M:%S %p')
         await event.respond(
             f'✅ Premium subscription successfully transferred to {target_name} ({target_user_id}). Your premium access has been removed.'
