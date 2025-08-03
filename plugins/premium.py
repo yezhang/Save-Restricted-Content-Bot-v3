@@ -6,7 +6,7 @@ from shared_client import client as bot_client, app
 from telethon import events
 from datetime import timedelta
 from config import OWNER_ID
-from utils.func import add_premium_user, is_private_chat
+from utils.func import add_premium_user, is_private_chat, save_user_activity
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton as IK, InlineKeyboardMarkup as IKM
 from config import OWNER_ID, JOIN_LINK , ADMIN_CONTACT
@@ -15,13 +15,18 @@ from plugins.start import subscribe
 
 @bot_client.on(events.NewMessage(pattern='/add'))
 async def add_premium_handler(event):
+
+    user_id = event.sender_id
+    sender = await event.get_sender()
+    await save_user_activity(user_id, sender, "/add")
+
     if not await is_private_chat(event):
         await event.respond(
             'This command can only be used in private chats for security reasons.'
             )
         return
     """Handle /add command to add premium users (owner only)"""
-    user_id = event.sender_id
+    
     if user_id not in OWNER_ID:
         await event.respond('This command is restricted to the bot owner.')
         return
@@ -71,6 +76,10 @@ Subscription valid until: {formatted_expiry} (IST)"""
 # 机器人是可以在群或频道中接收消息的，所以使用 filter.private 来确保只在私聊中处理 /start 命令
 @app.on_message(filters.command('start') & filters.private)
 async def start_handler(client, message):
+
+    user_id = message.from_user.id
+    await save_user_activity(user_id, message.from_user, "/start")
+
     subscription_status = await subscribe(client, message)
     if subscription_status == 1:
         return

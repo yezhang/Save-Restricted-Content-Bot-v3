@@ -8,6 +8,7 @@ from shared_client import app
 from pyrogram import filters
 from pyrogram.errors import UserNotParticipant
 from pyrogram.types import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup
+from utils.func import save_user_activity
 from config import LOG_GROUP, OWNER_ID, FORCE_SUB
 
 async def subscribe(app, message):
@@ -187,6 +188,10 @@ async def send_or_edit_help_page(_, message, page_number):
  
 @app.on_message(filters.command("help"))
 async def help(client, message):
+
+    user_id = message.from_user.id
+    await save_user_activity(user_id, message.from_user, "/help")
+
     join = await subscribe(client, message)
     if join == 1:
         return

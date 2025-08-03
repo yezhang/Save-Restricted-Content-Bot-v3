@@ -6,7 +6,7 @@ from datetime import timedelta, datetime
 from shared_client import client as bot_client
 from telethon import events
 from utils.func import get_premium_details, is_private_chat, get_display_name, get_user_data, premium_users_collection, is_premium_user
-from utils.func import get_user_free_limit_usage, get_user_free_limit_today
+from utils.func import get_user_free_limit_usage, get_user_free_limit_today, save_user_activity
 from config import OWNER_ID
 import logging
 logging.basicConfig(format=
@@ -16,6 +16,10 @@ logger = logging.getLogger('bot-stats')
 
 @bot_client.on(events.NewMessage(pattern='/status'))
 async def status_handler(event):
+    # 记录用户活动
+    user_id = event.sender_id
+    await save_user_activity(user_id, event.message, "/status")
+
     if not await is_private_chat(event):
         await event.respond("This command can only be used in private chats for security reasons.")
         return

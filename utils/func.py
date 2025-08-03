@@ -27,6 +27,7 @@ premium_users_collection = db["premium_users"]
 statistics_collection = db["statistics"]
 codedb = db["redeem_code"]
 downloads_collection = db["downloads"]
+user_activities_collection = db["user_activities"] # 用于记录用户活动
 
 # ------- < start > Session Encoder don't change -------
 
@@ -110,6 +111,26 @@ def get_dummy_filename(info):
 async def is_private_chat(event):
     return event.is_private
 
+async def save_user_activity(user_id, user_details, activity_type, activity_details=None):
+    """Save user activity to the database."""
+    try:
+        activity = {
+            "user_id": user_id,
+            "user": {
+                "id": user_id,
+                "is_bot": getattr(user_details, "is_bot", False),
+                "is_premium": getattr(user_details, "is_premium", False),
+                "first_name": getattr(user_details, "first_name", ""),
+                "username": getattr(user_details, "username", ""),
+            },
+            "activity_type": activity_type,
+            "activity_details": activity_details,
+            "activity_timestamp": datetime.now()
+        }
+        await user_activities_collection.insert_one(activity)
+        logger.info(f"Saved activity for user {user_id}: {activity_type}")
+    except Exception as e:
+        logger.error(f"Error saving activity for user {user_id}: {e}")
 
 async def save_user_data(user_id, key, value):
     await users_collection.update_one(
@@ -118,7 +139,6 @@ async def save_user_data(user_id, key, value):
         upsert=True
     )
    # print(users_collection)
-
 
 async def get_user_data_key(user_id, key, default=None):
     user_data = await users_collection.find_one({"user_id": int(user_id)})

