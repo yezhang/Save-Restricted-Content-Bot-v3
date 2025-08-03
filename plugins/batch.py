@@ -365,7 +365,7 @@ async def process_msg(c, u, m, d, lt, uid, i):
                     file_name = f"{msg_name}"
                 c_name = sanitize(file_name)
             elif m.photo:
-                file_name = m.photo.file_name
+                file_name = m.photo.file_id # photo 没有 file_name 属性
                 if not file_name:
                     file_name = f"{msg_name}.jpg"
                 c_name = sanitize(file_name)
