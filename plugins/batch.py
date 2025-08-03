@@ -8,7 +8,7 @@ from pyrogram.types import Message
 from pyrogram.errors import UserNotParticipant
 from config import API_ID, API_HASH, LOG_GROUP, STRING, FORCE_SUB, FREEMIUM_LIMIT, PREMIUM_LIMIT
 from utils.func import get_user_data, screenshot, thumbnail, get_video_metadata
-from utils.func import get_user_data_key, process_text_with_rules, is_premium_user, E
+from utils.func import get_user_data_key, process_text_with_rules, is_premium_user, extract_chat_and_message_id
 from utils.func import is_user_free_limit_exceeded, update_user_free_quota_usage
 from shared_client import app as X
 from plugins.settings import rename_file
@@ -92,37 +92,68 @@ async def upd_dlg(c):
         return False
 
 # fixed the old group of 2021-2022 extraction 🌝 (buy krne ka fayda nhi ab old group) ✅ 
-async def get_msg(c, u, i, d, lt):
+async def get_msg(user_bot, user_client, i, d, link_type):
+    """Fetch messages from a chat.
+
+    Args:
+        user_bot (pyrogram.Client): 用户绑定的个人机器人，如果没有绑定个人机器人，则使用官方机器人。
+        user_client (pyrogram.Client): 每个登录用户的客户端。
+        i (str): The chat ID or username.
+        d (int): The message ID to start fetching from.
+        link_type (str): The type of chat ('public' or 'private').
+
+    Returns:
+        Optional[Message]: The fetched message or None if not found.
+    """
     try:
-        if lt == 'public':
+        if link_type == 'public':
             try:
                 if str(i).lower().endswith('bot'):
                     emp[i] = False
-                    xm = await u.get_messages(i, d)
+                    ## 通过
+                    xm = await user_client.get_messages(i, d)
                     emp[i] = getattr(xm, "empty", False)
                     if not emp[i]:
                         emp[i] = True
                         print(f"Bot chat found successfully...")
                         return xm
-                    
+
+                ## 先尝试通过个人机器人获取消息（如果个人机器人已经绑定群组）
+                xm = await user_bot.get_messages(i, d)
+                logger.info(f"fetched by {user_bot.me.username}")
+
+                ## message.empty 属性：
+                # The message is empty. A message can be empty in case it was deleted or you tried to retrieve a message that doesn’t exist yet.
+                
+                # 用法：process_msg 中会根据 `not emp.get(i, False)` 来转发信息。
+                emp[i] = getattr(xm, "empty", False)
                 if emp[i]:
-                    xm = await c.get_messages(i, d)
-                    print(f"fetched by {c.me.username}")
-                    emp[i] = getattr(xm, "empty", False)
-                    if emp[i]:
-                        print(f"Not fetched by {c.me.username}")
-                        try: await u.join_chat(i)
-                        except: pass
-                        xm = await u.get_messages((await u.get_chat(f"@{i}")).id, d)
+                    logger.info(f"Not fetched by {user_bot.me.username}")
+                    try: 
+                        ## 尝试通过个人客户端获取消息
+                        chat_obj = await user_client.join_chat(i)
+                        chat_id = chat_obj.id if hasattr(chat_obj, 'id') else None
+                    except Exception as e:
+                        logger.error(f"Error joining chat {i}: {e}")
+                        pass
                     
-                    return xm                   
+                    if not chat_id:
+                        chat_obj = await user_client.get_chat(f"{i}")
+                        chat_id = chat_obj.id if hasattr(chat_obj, 'id') else None
+                    
+                    xm = await user_client.get_messages(chat_id, d)
+                    emp[i] = getattr(xm, "empty", False)
+
+                    logger.info(f"message.empty: {emp[i]}")
+                
+                return xm    
             except Exception as e:
-                print(f'Error fetching public message: {e}')
+                logger.error(f'Error fetching public message: {e}')
                 return None
         else:
-            if u:
+            if user_client:
                 try:
-                    async for _ in u.get_dialogs(limit=50): pass
+                    async for _ in user_client.get_dialogs(limit=50): pass
                     
                     # Try with -100 prefix first
                     if str(i).startswith('-100'):
@@ -139,7 +170,7 @@ async def get_msg(c, u, i, d, lt):
                     
                     # Try -100 format first
                     try:
-                        result = await u.get_messages(chat_id_100, d)
+                        result = await user_client.get_messages(chat_id_100, d)
                         if result and not getattr(result, "empty", False):
                             return result
                     except Exception:
@@ -147,7 +178,7 @@ async def get_msg(c, u, i, d, lt):
                     
                     # Try - format second
                     try:
-                        result = await u.get_messages(chat_id_dash, d)
+                        result = await user_client.get_messages(chat_id_dash, d)
                         if result and not getattr(result, "empty", False):
                             return result
                     except Exception:
@@ -155,8 +186,8 @@ async def get_msg(c, u, i, d, lt):
                     
                     # Final fallback - refresh dialogs and try original
                     try:
-                        async for _ in u.get_dialogs(limit=200): pass
-                        result = await u.get_messages(i, d)
+                        async for _ in user_client.get_dialogs(limit=200): pass
+                        result = await user_client.get_messages(i, d)
                         if result and not getattr(result, "empty", False):
                             return result
                     except Exception:
@@ -497,7 +528,7 @@ async def text_handler(c, m):
 
     if s == 'start':
         L = m.text
-        i, d, lt = E(L)
+        i, d, lt = extract_chat_and_message_id(L)
         if not i or not d:
             await m.reply_text('无效的链接格式。')
             Z.pop(uid, None)
@@ -507,7 +538,7 @@ async def text_handler(c, m):
 
     elif s == 'start_single':
         L = m.text
-        i, d, lt = E(L)
+        i, d, lt = extract_chat_and_message_id(L)
         if not i or not d:
             await m.reply_text('无效的链接格式。')
             Z.pop(uid, None)

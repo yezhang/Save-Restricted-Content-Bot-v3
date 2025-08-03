@@ -56,19 +56,19 @@ def hhmmss(seconds):
     return time.strftime('%H:%M:%S', time.gmtime(seconds))
 
 
-def E(L):   
+def extract_chat_and_message_id(msg_link):   
     """
     Extract chat ID and message ID from a Telegram link.
     Args:
-    - L: The Telegram link (e.g., https://t.me/c/123456/7890 or https://t.me/some_channel/12345).
+    - msg_link: The Telegram link (e.g., https://t.me/c/123456/7890 or https://t.me/some_channel/12345).
     Returns:
     - chat_id: The chat ID (e.g., -1001234567890 for private chats, or some_channel for public channels).
     - message_id: The message ID (e.g., 7890).
     - chat_type: 'private' for private chats, 'public' for public channels.
     """
-    private_match = re.match(r'https://t\.me/c/(\d+)/(?:\d+/)?(\d+)', L)
-    public_match = re.match(r'https://t\.me/([^/]+)/(?:\d+/)?(\d+)', L)
-    
+    private_match = re.match(r'https://t\.me/c/(\d+)/(?:\d+/)?(\d+)', msg_link)
+    public_match = re.match(r'https://t\.me/([^/]+)/(?:\d+/)?(\d+)', msg_link)
+
     if private_match:
         return f'-100{private_match.group(1)}', int(private_match.group(2)), 'private'
     elif public_match:

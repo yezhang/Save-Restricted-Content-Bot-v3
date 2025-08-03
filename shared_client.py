@@ -8,15 +8,17 @@ from pyrogram import Client
 import sys
 
 client = TelegramClient("telethonbot", API_ID, API_HASH)
+"""client, a telethon client for bot operations."""
+
 app = Client("pyrogrambot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
-"""pyrogram client for bot operations.
+""" app, a pyrogram client for bot operations.
 
 Returns:
     _type_: pyrogram.Client
 """
 
 userbot = Client("4gbbot", api_id=API_ID, api_hash=API_HASH, session_string=STRING)
-"""pyrogram client for user(4gb client) operations.
+"""userbot, pyrogram client for user(4gb client) operations.
 
 Returns:
     _type_: pyrogram.Client

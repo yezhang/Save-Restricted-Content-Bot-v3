@@ -212,7 +212,7 @@ async def edit_message_safely(message, text):
         logger.error(f'Error editing message: {e}')
         
 @bot.on_message(filters.command('cancel'))
-async def cancel_command(client, message):
+async def cancel_login_command(client, message):
     user_id = message.from_user.id
     await message.delete()
     if get_user_step(user_id):
