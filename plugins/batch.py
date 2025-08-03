@@ -624,11 +624,13 @@ async def text_handler(c, m):
         uc = await get_uclient(uid)
         ubot = UB.get(uid)
         
-        if not uc or not ubot:
-            await pt.edit('Missing client setup')
+        if not uc:
+            await pt.edit('请先登录 /login')
             Z.pop(uid, None)
             return
-            
+        if not ubot:
+            ubot = X # 不使用个人机器人，直接使用官方入口机器人
+
         if is_user_active(uid):
             await pt.edit('Active task exists')
             Z.pop(uid, None)
