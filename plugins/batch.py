@@ -293,7 +293,7 @@ async def send_direct(c, m, tcid, ft=None, rtmid=None):
         logger.error(f'Direct send error: {e}')
         return False
 
-async def process_msg(c, u, m, d, lt, uid, i):
+async def process_msg(c, u, m, d, lt, uid, i, msg_link):
     '''
     Process a message and send it to the specified chat.
     Args:
