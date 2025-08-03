@@ -495,6 +495,11 @@ async def process_cmd(c, m):
 
     # 查询用户的套餐身份
     if not await is_premium_user(uid):
+        # /batch 命令没有免费额度
+        if cmd == 'batch':
+            await m.reply_text("免费用户无法使用 /batch 命令。请联系管理员 @Yezegg 了解更多信息。")
+            return
+        # 免费用户限制
         if await is_user_free_limit_exceeded(uid):
             await m.reply_text(f'您的免费用户下载次数或文件大小已用完（可以等第二天恢复）。可以使用 /status 查询状态。请联系管理员 @Yezegg 了解更多信息。')
             return
