@@ -10,6 +10,7 @@ from config import API_ID, API_HASH, LOG_GROUP, STRING, FORCE_SUB, FREEMIUM_LIMI
 from utils.func import get_user_data, screenshot, thumbnail, get_video_metadata
 from utils.func import get_user_data_key, process_text_with_rules, is_premium_user, extract_chat_and_message_id
 from utils.func import is_user_free_limit_exceeded, update_user_free_quota_usage
+from utils.func import add_download_record, save_user_activity
 from shared_client import app as X
 from plugins.settings import rename_file
 from plugins.start import subscribe as sub
@@ -464,6 +465,8 @@ async def process_msg(c, u, m, d, lt, uid, i):
             if not await is_premium_user(uid):
                 await update_user_free_quota_usage(uid, fsize_byte)
             
+            # 添加下载记录
+            await add_download_record(uid, msg_link, fsize_byte)
             os.remove(f)
             await c.delete_messages(d, p.id)
             

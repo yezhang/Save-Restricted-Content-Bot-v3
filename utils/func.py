@@ -26,6 +26,7 @@ users_collection = db["users"]
 premium_users_collection = db["premium_users"]
 statistics_collection = db["statistics"]
 codedb = db["redeem_code"]
+downloads_collection = db["downloads"]
 
 # ------- < start > Session Encoder don't change -------
 
@@ -462,4 +463,24 @@ async def update_user_free_quota_usage(user_id, file_size):
         await save_user_data(user_id, "free_limit_usage", user_free_limit)
     except Exception as e:
         logger.error(f"Error updating free quota for {user_id}: {e}")
+
+async def add_download_record(user_id, msg_url, file_size):
+    """添加下载记录到数据库。
+
+    Args:
+        user_id (_type_): 用户 ID
+        msg_url (_type_): 消息 URL
+        file_size (_type_): 文件大小，单位为字节
+    """
+    try:
+        record = {
+            "user_id": user_id,
+            "msg_url": msg_url,
+            "file_size_bytes": file_size,
+            "status": "completed",
+            "downloaded_at": datetime.now()
+        }
+        await downloads_collection.insert_one(record)
+    except Exception as e:
+        logger.error(f"Error adding download record for {user_id}: {e}")
 
